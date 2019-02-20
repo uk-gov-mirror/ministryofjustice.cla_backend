@@ -338,7 +338,7 @@ class ProviderCSVValidator(object):
         self.cleaned_data = []
 
     def _validate_field(self, field_name, field_value, idx, row_num, validators):
-        # Field Validation
+        # Field Validationn
         try:
             # reduce the validators over the original field value, save
             # the final value into self.cleaned_data[field_name]
@@ -347,13 +347,16 @@ class ProviderCSVValidator(object):
             return cleaned_value
 
         except serializers.ValidationError as ve:
-            ve.message = "Row: %s Field (%s / %s): %s - %s" % (
-                row_num + 1,
-                idx + 1,
-                excel_col_name(idx + 1),
-                field_name,
-                ve.message,
-            )
+            if field_name == "Determination":
+                ve.message = "The Determination code you have entered is invalid. Please enter a valid code."
+            else:
+                ve.message = "Row: %s Field (%s / %s): %s - %s" % (
+                    row_num + 1,
+                    idx + 1,
+                    excel_col_name(idx + 1),
+                    field_name,
+                    ve.message,
+                )
             raise ve
 
     @staticmethod

@@ -539,6 +539,17 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
         with self.assertRaisesRegexp(serializers.ValidationError, "[u'Time spent (9) must be in 6 minute intervals']"):
             validator._validate_time_spent(cleaned_data, u"welfare")
 
+    @override_settings(CONTRACT_2018_ENABLED=True)
+    def test_validition_determination_code_error_message(self):
+        test_values = {
+            "Matter Type 1": u"EPRO",
+            "Matter Type 2": u"ESOS",
+            "Stage Reached": u"EA",
+            "Determination": u"FAGA",
+        }
+        expected_error = "The Determination code you have entered is invalid. Please enter a valid code."
+        self._test_generated_2018_contract_row_validate_fails(override=test_values, expected_error=expected_error)
+
     def test_validation_exemption_code_or_cla_ref_required(self):
         validator = self.get_provider_csv_validator()
         cleaned_data = self.get_dummy_cleaned_data_copy()
