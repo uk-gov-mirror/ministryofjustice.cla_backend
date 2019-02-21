@@ -347,17 +347,18 @@ class ProviderCSVValidator(object):
             return cleaned_value
 
         except serializers.ValidationError as ve:
-            if field_name == "Determination":
-                ve.message = "The Determination code you have entered is invalid. Please enter a valid code."
-            else:
-                ve.message = "Row: %s Field (%s / %s): %s - %s" % (
-                    row_num + 1,
-                    idx + 1,
-                    excel_col_name(idx + 1),
-                    field_name,
-                    ve.message,
-                )
-            raise ve
+            # if field_name == "Determination":
+            #     ve.message = "The Determination code you have entered is invalid. Please enter a valid code."
+            # else:
+            ve.message = "Row: %s Field (%s / %s): %s - %s" % (
+                row_num + 1,
+                idx + 1,
+                excel_col_name(idx + 1),
+                field_name,
+                ve.message,
+            )
+
+        raise ve
 
     @staticmethod
     def get_date_opened_index():
@@ -409,7 +410,10 @@ class ProviderCSVValidator(object):
                     cleaned_data[field_name] = self._validate_field(
                         field_name, field_value.strip(), idx, row_num, validators
                     )
+                    print("FIELD NAME", cleaned_data[field_name])
+                    print("VALIDATE FIELD", self._validate_field)
                 except serializers.ValidationError as ve:
+                    print("ERRORS", errors)
                     errors.append(ve)
                 except (AssertionError, TypeError) as e:
                     errors.append(e)
@@ -546,8 +550,24 @@ class ProviderCSVValidator(object):
     @depends_on("Determination", check=value_is_truthy)
     def _validate_determination_dvca_is_family(self, cleaned_data, category):
         determination = cleaned_data.get("Determination")
+        print("Determination from dvca", determination)
         if determination == u"DVCA" and category != u"family":
             raise serializers.ValidationError("Category (%s) must be Family if Determination is DVCA" % category)
+
+    # WORKING ON THIS...
+    @depends_on("Determination", check=value_is_truthy)
+    def _validate_determination_code(self, cleaned_data):
+        determination = cleaned_data.get("Determination")
+        if determination not in get_determination_codes(CONTRACT_EIGHTEEN):
+            # print("DETERMINATION", determination)
+            # print("IS the code there?", determination not in get_determination_codes(CONTRACT_EIGHTEEN))
+            # print("DETERMINATION CLEANED DATA", determination)
+            # print("Determination codes", get_determination_codes(CONTRACT_EIGHTEEN))
+            # print(contract_2018_validators_for_new_field_order['Determination'])
+            # print("The Determination code you have entered is invalid. Please enter a valid code.")
+            raise serializers.ValidationError(
+                "The Determination code you have entered is invalid. Please enter a valid code."
+            )
 
     def _validate_fee_code_is_na(self, cleaned_data):
         if cleaned_data.get("Fixed Fee Code") != "NA":
@@ -634,6 +654,7 @@ class ProviderCSVValidator(object):
             self._validate_eligibility_code,
             self._validate_stage_reached,
             self._validate_dob_present,
+            self._validate_determination_code,
         ]
 
         validation_methods.extend(self.get_extra_validators_for_applicable_contract(applicable_contract))
@@ -643,6 +664,7 @@ class ProviderCSVValidator(object):
             self._validate_exemption,
             self._validate_telephone_or_online_advice,
             self._validate_determination_dvca_is_family,
+            # self._validate_determination_code,
         ]
 
         for m in validation_methods:
@@ -669,4 +691,5 @@ class ProviderCSVValidator(object):
 
     def validate(self):
         self._validate_fields()
+        print("CLEANED DATA", self.cleaned_data)
         return self.cleaned_data
