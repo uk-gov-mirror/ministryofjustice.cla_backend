@@ -95,7 +95,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
         contract_2013_format_data["Unused1"] = u""
         contract_2013_format_data["Unused2"] = u""
         contract_2013_format_data["Postcode"] = u"SW1A 1AA"
-        contract_2013_format_data["Eligibility Code"] = u"X"
+        contract_2013_format_data["Eligibility Code"] = u"T"
         contract_2013_format_data["Matter Type 1"] = u""
         contract_2013_format_data["Matter Type 2"] = u""
         contract_2013_format_data["Stage Reached"] = u""
@@ -130,7 +130,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
         contract_2018_format_data["Gender"] = u"M"
         contract_2018_format_data["Ethnicity"] = u"1"
         contract_2018_format_data["Postcode"] = u"SW1A 1AA"
-        contract_2018_format_data["Eligibility Code"] = u"X"
+        contract_2018_format_data["Eligibility Code"] = u"T"
         contract_2018_format_data["Matter Type 1"] = u""
         contract_2018_format_data["Matter Type 2"] = u""
         contract_2018_format_data["Stage Reached"] = u""
@@ -170,7 +170,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
                 u"",
                 u"",
                 u"SW1A 1AA",
-                u"X",
+                u"T",
                 u"EPRO",
                 u"ESOS",
                 u"EA",
@@ -242,7 +242,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
                 u"M",
                 u"1",
                 u"SW1A 1AA",
-                u"X",
+                u"T",
                 u"EPRO",
                 u"ESOS",
                 u"EA",
@@ -327,7 +327,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
             "Outcome Code": u"EB",
             "Date Opened": datetime.datetime(2014, 1, 1, 0, 0),
             "Signposting / Referral": u"",
-            "Eligibility Code": u"X",
+            "Eligibility Code": u"T",
             "Gender": u"M",
             "Case Costs": Decimal("99.5"),
             "Disbursements": Decimal("0"),
@@ -360,7 +360,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
             "Outcome Code": u"EB",
             "Date Opened": datetime.datetime(2014, 1, 1, 0, 0),
             "Signposting / Referral": u"",
-            "Eligibility Code": u"X",
+            "Eligibility Code": u"T",
             "Gender": u"M",
             "Case Costs": Decimal("99.5"),
             "Disbursements": Decimal("0"),
@@ -498,6 +498,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
         validator = self.get_provider_csv_validator()
         cleaned_data = self.get_dummy_cleaned_data_copy()
         cleaned_data["Eligibility Code"] = u"S"
+        cleaned_data["Fixed Fee Code"] = u"LF"
         validator._validate_eligibility_code(cleaned_data)
         cleaned_data["Time Spent"] = 999
         with self.assertRaisesRegexp(
@@ -509,6 +510,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
         validator = self.get_provider_csv_validator()
         cleaned_data = self.get_dummy_cleaned_data_copy()
         cleaned_data["Eligibility Code"] = u"S"
+        cleaned_data["Fixed Fee Code"] = u"LF"
         cleaned_data["Determination"] = False
         validator._validate_eligibility_code(cleaned_data)
 
@@ -528,6 +530,22 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
         with self.assertRaisesRegexp(
             serializers.ValidationError,
             r"The eligibility code you have entered is invalid. Please select a valid code.",
+        ):
+            validator._validate_eligibility_code(cleaned_data)
+
+    @override_settings(CONTRACT_2018_ENABLED=True)
+    def test_validation_for_eligibility_codes_correct_fixed_fee_2018(self):
+        validator = self.get_provider_csv_validator()
+        cleaned_data = self.get_dummy_cleaned_data_copy()
+        cleaned_data["Eligibility Code"] = u"S"
+        cleaned_data["Determination"] = False
+        cleaned_data["Fixed Fee Code"] = u"HF"
+        cleaned_data["Fixed Fee Amount"] = u"65"
+
+        cleaned_data["Time Spent"] = 18
+        with self.assertRaisesRegexp(
+            serializers.ValidationError,
+            r"The eligibility code you have entered is not valid with the Fixed Fee, please review eligibility code.",
         ):
             validator._validate_eligibility_code(cleaned_data)
 
@@ -883,6 +901,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
             "Stage Reached": u"HA",
             "Fixed Fee Code": u"DF",
             "Fixed Fee Amount": u"130",
+            "Eligibility Code": u"T",
         }
         self._test_generated_contract_row_validates(override=test_values)
 
@@ -899,6 +918,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
             "Matter Type 2": u"FMEC",
             "Fixed Fee Amount": u"119.6",
             "Fixed Fee Code": u"HM",
+            "Eligibility Code": u"T",
         }
         self._test_generated_contract_row_validates(override=test_values)
 
@@ -921,6 +941,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
             "Stage Reached": u"DB",
             "Fixed Fee Amount": u"119.6",
             "Fixed Fee Code": u"HR",
+            "Eligibility Code": u"T",
         }
         self._test_generated_contract_row_validates(override=test_values)
 

@@ -455,12 +455,19 @@ class ProviderCSVValidator(object):
     def _validate_eligibility_code(self, cleaned_data):
         code = cleaned_data.get("Eligibility Code")
         time_spent = cleaned_data.get("Time Spent", 0)
+        fixed_fee_code = cleaned_data.get("Fixed Fee Code")
         validate_present(code, message="Eligibility Code field is required because no determination was specified")
         # check valid code
         if code not in {u"S", u"T", u"V", u"W", u"X", u"Z"}:
             raise serializers.ValidationError(
                 u"The eligibility code you have entered is invalid. Please select a valid code."
             )
+        # check correct fixed fee code
+        if code in {u"S", u"W", u"X", u"Z"} and fixed_fee_code != u"LF":
+            raise serializers.ValidationError(
+                u"The eligibility code you have entered is not valid with the Fixed Fee, please review eligibility code."
+            )
+
         # check time spent
         if code in {u"S", u"W", u"X", u"Z"} and time_spent > 132:
             raise serializers.ValidationError(
