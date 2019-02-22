@@ -460,21 +460,30 @@ class ProviderCSVValidator(object):
         # check valid code
         if code not in {u"S", u"T", u"V", u"W", u"X", u"Z"}:
             raise serializers.ValidationError(
-                u"The eligibility code you have entered is invalid. Please select a valid code."
+                u"The eligibility code you have entered is invalid. " u"Please select a valid code."
             )
+
         # check correct fixed fee code
         if code in {u"S", u"W", u"X", u"Z"} and fixed_fee_code != u"LF":
             raise serializers.ValidationError(
-                u"The eligibility code you have entered is not valid with the Fixed Fee, please review eligibility code."
+                u"The eligibility code you have entered is not valid with the "
+                u"Fixed Fee, please review eligibility code."
+            )
+
+        # check time spent 2013
+        if code in {u"S", u"W", u"X", u"Z"} and time_spent > 132:
+            raise serializers.ValidationError(
+                u"The eligibility code you have entered is not valid with "
+                u"the time spent on this case, please review the eligibility code."
             )
 
         # check time spent
-        if code in {u"S", u"W", u"X", u"Z"} and time_spent > 132:
-            raise serializers.ValidationError(
-                u"The eligibility code (%s) you have entered is not valid with "
-                u"the time spent (%s) on this case, please review the "
-                u"eligibility code." % (code, time_spent)
-            )
+        # if code in {u"S", u"W", u"X", u"Z"} and time_spent > 132:
+        #     raise serializers.ValidationError(
+        #         u"The eligibility code (%s) you have entered is not valid with "
+        #         u"the time spent (%s) on this case, please review the "
+        #         u"eligibility code." % (code, time_spent)
+        #     )
 
     @staticmethod
     def _validate_category_consistency(cleaned_data):

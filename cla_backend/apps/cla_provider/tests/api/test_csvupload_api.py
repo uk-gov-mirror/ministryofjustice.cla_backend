@@ -529,7 +529,7 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
         cleaned_data["Time Spent"] = 999
         with self.assertRaisesRegexp(
             serializers.ValidationError,
-            r"The eligibility code you have entered is invalid. Please select a valid code.",
+            r"The eligibility code you have entered is invalid. " r"Please select a valid code.",
         ):
             validator._validate_eligibility_code(cleaned_data)
 
@@ -541,11 +541,27 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
         cleaned_data["Determination"] = False
         cleaned_data["Fixed Fee Code"] = u"HF"
         cleaned_data["Fixed Fee Amount"] = u"65"
-
         cleaned_data["Time Spent"] = 18
         with self.assertRaisesRegexp(
             serializers.ValidationError,
-            r"The eligibility code you have entered is not valid with the Fixed Fee, please review eligibility code.",
+            r"The eligibility code you have entered is not valid with the "
+            r"Fixed Fee, please review eligibility code.",
+        ):
+            validator._validate_eligibility_code(cleaned_data)
+
+    # WORK IN PROGRESS...
+    def test_validation_for_eligibility_codes_for_time_spent_2013(self):
+        validator = self.get_provider_csv_validator()
+        cleaned_data = self.get_dummy_cleaned_data_copy()
+        cleaned_data["Eligibility Code"] = u"W"
+        cleaned_data["Determination"] = False
+        cleaned_data["Fixed Fee Code"] = u"LF"
+        cleaned_data["Fixed Fee Amount"] = u"65"
+        cleaned_data["Time Spent"] = 200
+        with self.assertRaisesRegexp(
+            serializers.ValidationError,
+            r"The eligibility code you have entered is not valid with the "
+            r"time spent on this case, please review the eligibility code.",
         ):
             validator._validate_eligibility_code(cleaned_data)
 
