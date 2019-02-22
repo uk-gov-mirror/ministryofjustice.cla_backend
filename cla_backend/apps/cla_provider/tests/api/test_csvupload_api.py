@@ -511,9 +511,23 @@ class ProviderCSVValidatorTestCase(unittest.TestCase):
         cleaned_data["Eligibility Code"] = u"S"
         cleaned_data["Determination"] = False
         validator._validate_eligibility_code(cleaned_data)
+
         cleaned_data["Time Spent"] = 999
         with self.assertRaisesRegexp(
             serializers.ValidationError, r"The eligibility code .* you have entered is not valid with"
+        ):
+            validator._validate_eligibility_code(cleaned_data)
+
+    def test_validation_for_eligibility_codes(self):
+        validator = self.get_provider_csv_validator()
+        cleaned_data = self.get_dummy_cleaned_data_copy()
+        cleaned_data["Eligibility Code"] = u"A"
+        cleaned_data["Determination"] = False
+
+        cleaned_data["Time Spent"] = 999
+        with self.assertRaisesRegexp(
+            serializers.ValidationError,
+            r"The eligibility code you have entered is invalid. Please select a valid code.",
         ):
             validator._validate_eligibility_code(cleaned_data)
 

@@ -456,6 +456,11 @@ class ProviderCSVValidator(object):
         code = cleaned_data.get("Eligibility Code")
         time_spent = cleaned_data.get("Time Spent", 0)
         validate_present(code, message="Eligibility Code field is required because no determination was specified")
+        # check valid code
+        if code not in {u"S", u"T", u"V", u"W", u"X", u"Z"}:
+            raise serializers.ValidationError(
+                u"The eligibility code you have entered is invalid. Please select a valid code."
+            )
         # check time spent
         if code in {u"S", u"W", u"X", u"Z"} and time_spent > 132:
             raise serializers.ValidationError(
