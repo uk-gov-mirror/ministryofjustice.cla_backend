@@ -9,7 +9,7 @@ from django_statsd.clients import statsd
 from legalaid.permissions import IsManagerOrMePermission
 
 from rest_framework import mixins
-from rest_framework.decorators import action, link
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response as DRFResponse
 from rest_framework.filters import SearchFilter
 
@@ -18,7 +18,8 @@ from cla_eventlog.views import BaseEventViewSet, BaseLogViewSet
 from legalaid.models import Case
 from legalaid.views import (
     BaseUserViewSet,
-    BaseNestedEligibilityCheckViewSet,
+    # BaseNestedEligibilityCheckViewSet,
+    BaseEligibilityCheckViewSet,
     BaseCategoryViewSet,
     BaseMatterTypeViewSet,
     BaseMediaCodeViewSet,
@@ -71,10 +72,7 @@ class CategoryViewSet(CLAProviderPermissionViewSetMixin, BaseCategoryViewSet):
 
 
 class EligibilityCheckViewSet(
-    CLAProviderPermissionViewSetMixin,
-    mixins.UpdateModelMixin,
-    mixins.RetrieveModelMixin,
-    BaseNestedEligibilityCheckViewSet,
+    CLAProviderPermissionViewSetMixin, mixins.UpdateModelMixin, mixins.RetrieveModelMixin, BaseEligibilityCheckViewSet
 ):
     serializer_class = EligibilityCheckSerializer
 
@@ -82,6 +80,20 @@ class EligibilityCheckViewSet(
     def pre_save(self, obj):
         original_obj = self.get_object()
         self.__pre_save__ = self.get_serializer_class()(original_obj).data
+
+    @detail_route(methods=["post"])
+    def is_eligible(self, request, *args, **kwargs):
+        obj = self.get_object()
+
+        response, ec, reasons = obj.get_eligibility_state()
+        return DRFResponse({"is_eligible": response, "reasons": reasons})
+
+    @detail_route()
+    def case_ref(self, request, *args, **kwargs):
+        try:
+            return DRFResponse({"reference": self.get_object().case.reference})
+        except AttributeError:
+            pass  # raise Http404
 
 
 class MatterTypeViewSet(CLAProviderPermissionViewSetMixin, BaseMatterTypeViewSet):
@@ -150,35 +162,35 @@ class CaseViewSet(CLAProviderPermissionViewSetMixin, FullCaseViewSet):
 
         return qs
 
-    @action()
+    @detail_route()
     def reject(self, request, reference=None, **kwargs):
         """
         Rejects a case
         """
         return self._form_action(request, Form=RejectCaseForm)
 
-    @action()
+    @detail_route()
     def accept(self, request, reference=None, **kwargs):
         """
         Accepts a case
         """
         return self._form_action(request, Form=AcceptCaseForm, no_body=False)
 
-    @action()
+    @detail_route()
     def close(self, request, reference=None, **kwargs):
         """
         Closes a case
         """
         return self._form_action(request, Form=CloseCaseForm)
 
-    @action()
+    @detail_route()
     def reopen(self, request, reference=None, **kwargs):
         """
         Reopens a case
         """
         return self._form_action(request, Form=ReopenCaseForm, no_body=False)
 
-    @link()
+    @list_route()
     def legal_help_form_extract(self, *args, **kwargs):
         case = self.get_object()
         data = {
@@ -188,7 +200,7 @@ class CaseViewSet(CLAProviderPermissionViewSetMixin, FullCaseViewSet):
         }
         return DRFResponse(data)
 
-    @action()
+    @detail_route()
     def split(self, request, reference=None, **kwargs):
         return self._form_action(request, Form=SplitCaseForm, form_kwargs={"request": request})
 

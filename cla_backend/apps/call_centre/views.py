@@ -14,7 +14,7 @@ from historic.models import CaseArchived
 from legalaid.permissions import IsManagerOrMePermission
 
 from rest_framework import viewsets, mixins, status
-from rest_framework.decorators import action, link
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response as DRFResponse
 from rest_framework.filters import OrderingFilter, DjangoFilterBackend, SearchFilter, BaseFilterBackend
 
@@ -23,7 +23,6 @@ from cla_eventlog.views import BaseEventViewSet, BaseLogViewSet
 from cla_provider.helpers import ProviderAllocationHelper, notify_case_assigned
 
 from core.drf.pagination import RelativeUrlPaginationSerializer
-from core.drf.decorators import list_route
 from core.drf.mixins import FormActionMixin
 from notifications.views import BaseNotificationViewSet
 
@@ -262,7 +261,7 @@ class CaseViewSet(CallCentrePermissionsViewSetMixin, mixins.CreateModelMixin, Ba
 
         return DRFResponse(serializer.data)
 
-    @link()
+    @list_route()
     def assign_suggest(self, request, reference=None, **kwargs):
         """
         @return: dict - 'suggested_provider' (single item) ;
@@ -300,7 +299,7 @@ class CaseViewSet(CallCentrePermissionsViewSetMixin, mixins.CreateModelMixin, Ba
 
         return DRFResponse(suggestions)
 
-    @action()
+    @detail_route()
     def assign(self, request, reference=None, **kwargs):
         """
         Assigns the case to a provider
@@ -338,7 +337,7 @@ class CaseViewSet(CallCentrePermissionsViewSetMixin, mixins.CreateModelMixin, Ba
 
         return DRFResponse(dict(form.errors), status=status.HTTP_400_BAD_REQUEST)
 
-    @action()
+    @detail_route()
     def defer_assignment(self, request, **kwargs):
         obj = self.get_object()
         form = DeferAssignmentCaseForm(case=obj, data=request.DATA)
@@ -348,22 +347,22 @@ class CaseViewSet(CallCentrePermissionsViewSetMixin, mixins.CreateModelMixin, Ba
 
         return DRFResponse(dict(form.errors), status=status.HTTP_400_BAD_REQUEST)
 
-    @action()
+    @detail_route()
     def decline_help(self, request, reference=None, **kwargs):
         return self._form_action(request, DeclineHelpCaseForm)
 
-    @action()
+    @detail_route()
     def suspend(self, request, reference=None, **kwargs):
         return self._form_action(request, SuspendCaseForm)
 
-    @action()
+    @detail_route()
     def assign_alternative_help(self, request, **kwargs):
         return self._form_action(request, AlternativeHelpForm)
 
     def get_log_notes(self, obj):
         return "Case created"
 
-    @link()
+    @list_route()
     def search_for_personal_details(self, request, reference=None, **kwargs):
         """
             You can only call this endpoint if the case doesn't have any
@@ -393,7 +392,7 @@ class CaseViewSet(CallCentrePermissionsViewSetMixin, mixins.CreateModelMixin, Ba
 
         return DRFResponse(data)
 
-    @action()
+    @detail_route()
     def link_personal_details(self, request, reference=None, **kwargs):
         """
         * if not DATA.personal_details => return 400
@@ -430,15 +429,15 @@ class CaseViewSet(CallCentrePermissionsViewSetMixin, mixins.CreateModelMixin, Ba
 
         return DRFResponse(status=status.HTTP_204_NO_CONTENT)
 
-    @action()
+    @detail_route()
     def call_me_back(self, request, reference=None, **kwargs):
         return self._form_action(request, CallMeBackForm)
 
-    @action()
+    @detail_route()
     def stop_call_me_back(self, request, reference=None, **kwargs):
         return self._form_action(request, StopCallMeBackForm)
 
-    @action()
+    @detail_route()
     def start_call(self, request, reference=None, **kwargs):
         obj = self.get_object()
         event = event_registry.get_event("case")()
@@ -486,7 +485,7 @@ class UserViewSet(CallCentrePermissionsViewSetMixin, BaseUserViewSet):
 class PersonalDetailsViewSet(CallCentrePermissionsViewSetMixin, FormActionMixin, FullPersonalDetailsViewSet):
     serializer_class = PersonalDetailsSerializer
 
-    @action()
+    @detail_route()
     def set_diversity(self, request, reference=None, **kwargs):
         return self._form_action(request, DiversityForm)
 

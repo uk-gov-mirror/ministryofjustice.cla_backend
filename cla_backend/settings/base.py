@@ -172,6 +172,7 @@ INSTALLED_APPS = (
     "django.contrib.staticfiles",
     "django_statsd",
     "djorm_pgfulltext",
+    "django_extensions",
 )
 
 PROJECT_APPS = (

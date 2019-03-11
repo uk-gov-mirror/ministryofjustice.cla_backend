@@ -1,12 +1,12 @@
 from collections import namedtuple, OrderedDict
 
+from django.conf.urls import url
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import NoReverseMatch
 
 from rest_framework import views
 from rest_framework.routers import BaseRouter, flatten, replace_methodname
 from rest_framework.urlpatterns import format_suffix_patterns
-from rest_framework.compat import url
 from rest_framework.reverse import reverse
 from rest_framework.response import Response
 
@@ -48,12 +48,29 @@ class NestedCLARouter(NestedSimpleRouter):
         ),
         # Dynamically generated routes.
         # Generated using @action or @link decorators on methods of the viewset.
-        Route(
-            url=r"^{prefix}/{methodname}/$",
-            mapping={"{httpmethod}": "{methodname}"},
+        # Route(
+        #     url=r"^{prefix}/{methodname}/$",
+        #     mapping={"{httpmethod}": "{methodname}"},
+        #     name="{basename}-{methodnamehyphen}",
+        #     initkwargs={},
+        # ),
+        # Dynamically generated list routes.
+        # Generated using @list_route decorator
+        # on methods of the viewset.
+        DynamicListRoute(
+            url=r"^{prefix}/{methodname}{trailing_slash}$",
+            # mapping={"{httpmethod}": "{methodname}"},
             name="{basename}-{methodnamehyphen}",
             initkwargs={},
         ),
+        # Dynamically generated detail routes.
+        # Generated using @detail_route decorator on methods of the viewset.
+        # DynamicDetailRoute(
+        #     url=r"^{prefix}/{lookup}/{methodname}{trailing_slash}$",
+        #     mapping={"{httpmethod}": "{methodname}"},
+        # name="{basename}-{methodnamehyphen}",
+        # initkwargs={},
+        # ),
     ]
 
 
