@@ -137,7 +137,7 @@ jobs:
           name: Run unit tests
           command: |
             source env/bin/activate
-            python manage.py test --verbosity=2
+            python -Wa manage.py test --verbosity=2
 
 workflows:
   version: 2
