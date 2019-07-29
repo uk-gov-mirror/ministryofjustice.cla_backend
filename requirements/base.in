@@ -1,0 +1,4 @@
+Django==1.11.22
+djangorestframework==3.7.7
+django-model-utils==3.2.0
+
