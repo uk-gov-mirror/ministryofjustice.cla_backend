@@ -6,9 +6,11 @@ import tempfile
 
 from django.test import TestCase
 from psycopg2 import InternalError
+import mock
 
-from core.tests.mommy_utils import make_recipe
 from legalaid.utils.diversity import save_diversity_data
+from legalaid.models import Case
+from core.tests.mommy_utils import make_recipe
 import reports.forms
 from reports.utils import OBIEEExporter
 
@@ -136,3 +138,40 @@ class OBIEEExportOutputsZipTestCase(TestCase):
     def tearDown(self):
         if os.path.exists(self.td):
             shutil.rmtree(self.td, ignore_errors=True)
+
+
+class EODDetailsExportTestCase(TestCase):
+    def test_operator_manager_cannot_export_other_organisation_eods(self):
+        personal_details = make_recipe(
+            "legalaid.personal_details", _fill_optional=["full_name", "date_of_birth", "postcode"]
+        )
+
+        foo_org = make_recipe("call_centre.organisation", name="Organisation Foo")
+        foo_operator = make_recipe(
+            "call_centre.operator", is_manager=False, is_cla_superuser=False, organisation=foo_org
+        )
+        foo_manager_operator = make_recipe(
+            "call_centre.operator", is_manager=True, is_cla_superuser=False, organisation=foo_org
+        )
+        case1 = make_recipe("legalaid.case", personal_details=personal_details, created_by=foo_operator.user)
+        make_recipe("legalaid.eod_details", notes="EOD notes", case=case1)
+
+        bar_org = make_recipe("call_centre.organisation", name="Organisation Bar")
+        bar_operator = make_recipe(
+            "call_centre.operator", is_manager=False, is_cla_superuser=False, organisation=bar_org
+        )
+        case2 = make_recipe("legalaid.case", personal_details=personal_details, created_by=bar_operator.user)
+        make_recipe("legalaid.eod_details", notes="EOD notes", case=case2)
+
+        self.assertEqual(Case.objects.count(), 2)
+
+        request = mock.MagicMock(user=foo_manager_operator.user)
+        form = reports.forms.MIEODReport(
+            request=request, data={"date_from": datetime.date.today(), "date_to": datetime.date.today()}
+        )
+        self.assertTrue(form.is_valid())
+        query_result = form.get_queryset()
+        self.assertEqual(len(query_result), 1, "Found more EODDetails than expected")
+
+    def test_cla_superuser_can_export_all_organisation_eods(self):
+        self.fail("test_cla_superuser_can_export_all_organisation_eods")

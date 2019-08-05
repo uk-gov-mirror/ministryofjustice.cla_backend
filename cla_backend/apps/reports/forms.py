@@ -7,6 +7,7 @@ from django import forms
 from django.db.transaction import atomic
 from django.utils import timezone
 from django.contrib.admin import widgets
+from django.core.exceptions import ObjectDoesNotExist
 
 from legalaid.utils import diversity
 from cla_common.constants import EXPRESSIONS_OF_DISSATISFACTION
@@ -409,6 +410,16 @@ class MIDigitalCaseTypesExtract(SQLFileDateRangeReport):
 
 class MIEODReport(SQLFileDateRangeReport):
     QUERY_FILE = "MIEOD.sql"
+    OPERATION_MANAGER_QUERY_FILE = "MIEODOrganisation.sql"
+
+    def __init__(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            self.QUERY_FILE = self.OPERATION_MANAGER_QUERY_FILE if user.operator.organisation else self.QUERY_FILE
+            self.organisation = user.operator.organisation
+        except ObjectDoesNotExist:
+            pass
+        super(MIEODReport, self).__init__(*args, **kwargs)
 
     def get_headers(self):
         return [
@@ -437,6 +448,16 @@ class MIEODReport(SQLFileDateRangeReport):
             row = list(row)  # row is a tuple
             row[category_col] = row[category_col] and eod_choices.get(row[category_col], "Unknown") or "Not set"
             yield row
+
+    def get_queryset(self):
+        qs = super(MIEODReport, self).get_queryset()
+        if self.organisation:
+            from django.db.models import Q
+
+            query = Q(case__created_by__operator__organisation__isnull=True)
+            query.add(Q(case__created_by__operator__organisation=self.organisation), Q.OR)
+            qs.filter(query)
+        return qs
 
 
 class ComplaintsReport(SQLFileDateRangeReport):
