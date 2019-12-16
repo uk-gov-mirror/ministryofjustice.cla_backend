@@ -389,6 +389,7 @@ class EligibilityCheck(TimeStampedModel, ValidateModelMixin, ModelDiffMixin):
     on_passported_benefits = models.NullBooleanField(default=None)
     on_nass_benefits = models.NullBooleanField(default=None)
     specific_benefits = JSONField(null=True, blank=True)
+    in_category_skip_income_check = models.NullBooleanField(default=None)
 
     # need to be moved into graph/questions format soon
     is_you_or_your_partner_over_60 = models.NullBooleanField(default=None)

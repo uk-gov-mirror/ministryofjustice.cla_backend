@@ -124,6 +124,9 @@ class EligibilityCheckViewSet(
 
     # this is to fix a stupid thing in DRF where pre_save doesn't call super
     def pre_save(self, obj):
+        case = Case.objects.get(reference=self.kwargs["case_reference"])
+        if case.diagnosis and case.diagnosis.category.code == "family" and case.diagnosis.current_node_id == u"n103":
+            obj.in_category_skip_income_check = True
         original_obj = self.get_object()
         self.__pre_save__ = self.get_serializer_class()(original_obj).data
 
