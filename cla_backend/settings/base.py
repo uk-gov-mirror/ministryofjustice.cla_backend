@@ -265,7 +265,7 @@ LOGGING = {
     },
     "loggers": {
         "django.request": {"handlers": ["mail_admins"], "level": "ERROR", "propagate": True},
-        "local": {"handlers": ["sentry"], "level": "ERROR", "propagate": True},
+        "local": {"handlers": ["console"], "level": "ERROR", "propagate": True},
     },
 }
 
