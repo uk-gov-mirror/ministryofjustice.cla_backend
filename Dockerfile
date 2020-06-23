@@ -28,8 +28,10 @@ RUN pip install -r ./requirements/production.txt
 COPY . .
 
 # Make sure static assets directory has correct permissions
-RUN mkdir -p cla_backend/assets
-RUN chown -R app:app /home/app
+RUN chown -R app:app /home/app && \
+    mkdir -p cla_backend/assets
+
+RUN python manage.py compilemessages
 
 USER 1000
 EXPOSE 8000
