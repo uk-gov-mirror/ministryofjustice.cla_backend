@@ -157,6 +157,13 @@ class DiagnosisViewSet(
 ):
     serializer_class = CheckerDiagnosisSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        from raven.contrib.django.models import client
+        from raven.scripts.runner import send_test_message
+
+        send_test_message(client, {})
+        return super(DiagnosisViewSet, self).retrieve(request, *args, **kwargs)
+
     def get_current_user(self):
         return get_web_user()
 

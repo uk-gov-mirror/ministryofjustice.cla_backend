@@ -18,19 +18,10 @@ class DiagnosisModelMixin(object):
 
     @action()
     def move_down(self, request, **kwargs):
-        from raven.contrib.django.models import client
-        from raven.scripts.runner import send_test_message
-
-        send_test_message(client, {})
         return self.partial_update(request, **kwargs)
 
     @action()
     def move_up(self, request, **kwargs):
-        from raven.contrib.django.models import client
-        from raven.scripts.runner import send_test_message
-
-        send_test_message(client, {})
-
         self.object = self.get_object()
         serializer = self.get_serializer(self.object)
 
