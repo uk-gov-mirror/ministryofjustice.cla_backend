@@ -263,7 +263,10 @@ LOGGING = {
             "dsn": os.environ.get("RAVEN_CONFIG_DSN"),
         },
     },
-    "loggers": {"django.request": {"handlers": ["mail_admins"], "level": "ERROR", "propagate": True}},
+    "loggers": {
+        "django.request": {"handlers": ["mail_admins"], "level": "ERROR", "propagate": True},
+        "local": {"handlers": ["sentry"], "level": "ERROR", "propagate": True},
+    },
 }
 
 if "RAVEN_CONFIG_DSN" in os.environ:

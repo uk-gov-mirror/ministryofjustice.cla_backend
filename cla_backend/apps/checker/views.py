@@ -158,10 +158,16 @@ class DiagnosisViewSet(
     serializer_class = CheckerDiagnosisSerializer
 
     def retrieve(self, request, *args, **kwargs):
-        from raven.contrib.django.models import client
-        from raven.scripts.runner import send_test_message
+        from django.utils.translation import get_language_from_request
+        import logging
 
-        send_test_message(client, {})
+        lang = get_language_from_request(request)
+        logger = logging.getLogger("local")
+        logger.error(
+            "get_language_from_request: %s, HTTP_ACCEPT_LANGUAGE %s", lang, request.META.get("HTTP_ACCEPT_LANGUAGE")
+        )
+
+        # send_test_message(client, {})
         return super(DiagnosisViewSet, self).retrieve(request, *args, **kwargs)
 
     def get_current_user(self):
