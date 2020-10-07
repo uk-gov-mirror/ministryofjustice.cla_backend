@@ -82,6 +82,7 @@ class ExportTask(ExportTaskBase):
 
         self.filepath = self._filepath(filename)
         try:
+            2 / 0
             csv_data = list(self.form)
             csv_file = open(self.filepath, "w")
             with csv_writer(csv_file) as writer:

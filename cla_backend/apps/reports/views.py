@@ -60,7 +60,8 @@ def report_view(form_class, title, template="case_report", success_task=ExportTa
 
 
 def valid_submit(request, form):
-    0 / 1
+    if request.GET.get("error"):
+        1 / 0
     if request.method == "POST":
         form.data = request.POST
         form.is_bound = True
